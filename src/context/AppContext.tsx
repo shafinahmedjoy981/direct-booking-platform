@@ -151,8 +151,8 @@ const STORAGE_KEY = 'direct_booking_desk_state_v1';
 function getInitialAppData() {
   const initial = generateInitialBookings();
   const defaultData = {
-    language: 'bn' as Language,
-    numeralFormat: 'bn' as NumeralFormat,
+    language: 'en' as Language,
+    numeralFormat: 'en' as NumeralFormat,
     property: initialPropertySettings,
     roomTypes: initialRoomTypes,
     priceRules: initialPriceRules,
@@ -237,8 +237,8 @@ function getInitialAppData() {
       }
 
       return {
-        language: (parsed.language === 'en' ? 'en' : 'bn') as Language,
-        numeralFormat: (parsed.numeralFormat === 'en' ? 'en' : 'bn') as NumeralFormat,
+        language: (parsed.language === 'bn' ? 'bn' : 'en') as Language,
+        numeralFormat: (parsed.numeralFormat === 'bn' ? 'bn' : 'en') as NumeralFormat,
         property: parsed.property || initialPropertySettings,
         roomTypes: resolvedRoomTypes,
         priceRules: parsed.priceRules || initialPriceRules,
