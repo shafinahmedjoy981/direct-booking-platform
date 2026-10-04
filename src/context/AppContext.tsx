@@ -148,26 +148,137 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'direct_booking_desk_state_v1';
 
+function getInitialAppData() {
+  const initial = generateInitialBookings();
+  const defaultData = {
+    language: 'bn' as Language,
+    numeralFormat: 'bn' as NumeralFormat,
+    property: initialPropertySettings,
+    roomTypes: initialRoomTypes,
+    priceRules: initialPriceRules,
+    extraAddons: initialExtraAddons,
+    messageTemplates: initialMessageTemplates,
+    bookings: initial.bookings,
+    guests: initial.guests,
+    payments: initial.payments,
+  };
+
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return defaultData;
+  }
+
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const bengaliRegex = /[\u0980-\u09FF]/;
+
+      let resolvedRoomTypes = initialRoomTypes;
+      if (parsed.roomTypes && Array.isArray(parsed.roomTypes) && parsed.roomTypes.length > 0) {
+        resolvedRoomTypes = parsed.roomTypes.map((rt: RoomType) => {
+          const defaultRt = initialRoomTypes.find((d) => d.id === rt.id);
+          const resolvedRtNameEn = rt.nameEn && !bengaliRegex.test(rt.nameEn) ? rt.nameEn : (defaultRt?.nameEn || 'Deluxe Cottage');
+          return {
+            ...rt,
+            nameEn: resolvedRtNameEn,
+            units: (rt.units || []).map((u: any) => {
+              const defaultUnit = defaultRt?.units.find((du) => du.id === u.id);
+              const resolvedUnitNameEn = u.nameEn && !bengaliRegex.test(u.nameEn)
+                ? u.nameEn
+                : (defaultUnit?.nameEn || (u.roomNumber ? `Unit (${u.roomNumber})` : 'Room'));
+              return {
+                ...u,
+                nameEn: resolvedUnitNameEn,
+                nameBn: u.nameBn || defaultUnit?.nameBn || u.name,
+              };
+            }),
+          };
+        });
+      }
+
+      let resolvedBookings = initial.bookings;
+      if (parsed.bookings && Array.isArray(parsed.bookings) && parsed.bookings.length > 0) {
+        resolvedBookings = parsed.bookings.map((b: Booking) => {
+          const defBooking = initial.bookings.find((ib) => ib.id === b.id || ib.bookingCode === b.bookingCode);
+          const resolvedGuestNameEn = b.guestNameEn && !bengaliRegex.test(b.guestNameEn)
+            ? b.guestNameEn
+            : (defBooking?.guestNameEn || 'Tanvir Ahmed');
+          return {
+            ...b,
+            guestNameBn: b.guestNameBn || defBooking?.guestNameBn || b.guestName,
+            guestNameEn: resolvedGuestNameEn,
+            notesBn: b.notesBn || defBooking?.notesBn || b.notes,
+            notesEn: b.notesEn && !bengaliRegex.test(b.notesEn) ? b.notesEn : (defBooking?.notesEn || 'Direct Guest Booking'),
+          };
+        });
+      }
+
+      let resolvedGuests = initial.guests;
+      if (parsed.guests && Array.isArray(parsed.guests) && parsed.guests.length > 0) {
+        resolvedGuests = parsed.guests.map((g: Guest) => {
+          const defGuest = initial.guests.find((ig) => ig.id === g.id || ig.phone === g.phone);
+          const resolvedNameEn = g.nameEn && !bengaliRegex.test(g.nameEn)
+            ? g.nameEn
+            : (defGuest?.nameEn || 'Tanvir Ahmed');
+          return {
+            ...g,
+            nameBn: g.nameBn || defGuest?.nameBn || g.name,
+            nameEn: resolvedNameEn,
+            cityBn: g.cityBn || defGuest?.cityBn || g.city,
+            cityEn: g.cityEn && !bengaliRegex.test(g.cityEn) ? g.cityEn : (defGuest?.cityEn || 'Dhaka'),
+            tagsBn: g.tagsBn || defGuest?.tagsBn || g.tags,
+            tagsEn: g.tagsEn || defGuest?.tagsEn || g.tags,
+            preferencesNotesBn: g.preferencesNotesBn || defGuest?.preferencesNotesBn || g.preferencesNotes,
+            preferencesNotesEn: g.preferencesNotesEn && !bengaliRegex.test(g.preferencesNotesEn)
+              ? g.preferencesNotesEn
+              : (defGuest?.preferencesNotesEn || 'Enjoys mountain views'),
+          };
+        });
+      }
+
+      return {
+        language: (parsed.language === 'en' ? 'en' : 'bn') as Language,
+        numeralFormat: (parsed.numeralFormat === 'en' ? 'en' : 'bn') as NumeralFormat,
+        property: parsed.property || initialPropertySettings,
+        roomTypes: resolvedRoomTypes,
+        priceRules: parsed.priceRules || initialPriceRules,
+        extraAddons: parsed.extraAddons || initialExtraAddons,
+        messageTemplates: parsed.messageTemplates || initialMessageTemplates,
+        bookings: resolvedBookings,
+        guests: resolvedGuests,
+        payments: parsed.payments && Array.isArray(parsed.payments) && parsed.payments.length > 0 ? parsed.payments : initial.payments,
+      };
+    }
+  } catch {
+    // ignore
+  }
+
+  return defaultData;
+}
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Synchronous initial state resolution: renders fully populated content on the very first paint
+  const [initialData] = useState(getInitialAppData);
+
   // Settings & Localization
-  const [language, setLanguage] = useState<Language>('bn');
-  const [numeralFormat, setNumeralFormat] = useState<NumeralFormat>('bn');
+  const [language, setLanguage] = useState<Language>(initialData.language);
+  const [numeralFormat, setNumeralFormat] = useState<NumeralFormat>(initialData.numeralFormat);
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('today');
   const [currentRole, setCurrentRole] = useState<UserRole>('owner');
   const [isOffline, setIsOffline] = useState<boolean>(false);
 
   // Core Data
-  const [property, setProperty] = useState<PropertySettings>(initialPropertySettings);
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>(initialRoomTypes);
-  const [priceRules, setPriceRules] = useState<SeasonalPriceRule[]>(initialPriceRules);
-  const [extraAddons, setExtraAddons] = useState<ExtraAddon[]>(initialExtraAddons);
-  const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>(initialMessageTemplates);
+  const [property, setProperty] = useState<PropertySettings>(initialData.property);
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>(initialData.roomTypes);
+  const [priceRules, setPriceRules] = useState<SeasonalPriceRule[]>(initialData.priceRules);
+  const [extraAddons, setExtraAddons] = useState<ExtraAddon[]>(initialData.extraAddons);
+  const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>(initialData.messageTemplates);
   const [staffUsers] = useState<StaffUser[]>(initialStaffUsers);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(initialAuditLogs);
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [guests, setGuests] = useState<Guest[]>([]);
-  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>(initialData.bookings);
+  const [guests, setGuests] = useState<Guest[]>(initialData.guests);
+  const [payments, setPayments] = useState<PaymentRecord[]>(initialData.payments);
 
   // Dialogs & Drawers
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -186,101 +297,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Toast
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
-
-  // Load state from localStorage on initial mount
-  useEffect(() => {
-    const initial = generateInitialBookings();
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.property) setProperty(parsed.property);
-        if (parsed.roomTypes) {
-          const bengaliRegex = /[\u0980-\u09FF]/;
-          // Ensure units and roomTypes have nameEn and nameBn
-          const mergedRoomTypes = parsed.roomTypes.map((rt: RoomType) => {
-            const defaultRt = initialRoomTypes.find((d) => d.id === rt.id);
-            const resolvedRtNameEn = rt.nameEn && !bengaliRegex.test(rt.nameEn) ? rt.nameEn : (defaultRt?.nameEn || 'Deluxe Cottage');
-            return {
-              ...rt,
-              nameEn: resolvedRtNameEn,
-              units: (rt.units || []).map((u: any) => {
-                const defaultUnit = defaultRt?.units.find((du) => du.id === u.id);
-                const resolvedUnitNameEn = u.nameEn && !bengaliRegex.test(u.nameEn)
-                  ? u.nameEn
-                  : (defaultUnit?.nameEn || (u.roomNumber ? `Unit (${u.roomNumber})` : 'Room'));
-                return {
-                  ...u,
-                  nameEn: resolvedUnitNameEn,
-                  nameBn: u.nameBn || defaultUnit?.nameBn || u.name,
-                };
-              }),
-            };
-          });
-          setRoomTypes(mergedRoomTypes);
-        }
-        if (parsed.priceRules) setPriceRules(parsed.priceRules);
-        if (parsed.extraAddons) setExtraAddons(parsed.extraAddons);
-        if (parsed.bookings) {
-          const bengaliRegex = /[\u0980-\u09FF]/;
-          // Hydrate bookings with guestNameEn/Bn if missing
-          const hydratedBookings = parsed.bookings.map((b: Booking) => {
-            const defBooking = initial.bookings.find((ib) => ib.id === b.id || ib.bookingCode === b.bookingCode);
-            const resolvedGuestNameEn = b.guestNameEn && !bengaliRegex.test(b.guestNameEn)
-              ? b.guestNameEn
-              : (defBooking?.guestNameEn || 'Tanvir Ahmed');
-            return {
-              ...b,
-              guestNameBn: b.guestNameBn || defBooking?.guestNameBn || b.guestName,
-              guestNameEn: resolvedGuestNameEn,
-              notesBn: b.notesBn || defBooking?.notesBn || b.notes,
-              notesEn: b.notesEn && !bengaliRegex.test(b.notesEn) ? b.notesEn : (defBooking?.notesEn || 'Direct Guest Booking'),
-            };
-          });
-          setBookings(hydratedBookings);
-        } else {
-          setBookings(initial.bookings);
-        }
-        if (parsed.guests) {
-          const bengaliRegex = /[\u0980-\u09FF]/;
-          const hydratedGuests = parsed.guests.map((g: Guest) => {
-            const defGuest = initial.guests.find((ig) => ig.id === g.id || ig.phone === g.phone);
-            const resolvedNameEn = g.nameEn && !bengaliRegex.test(g.nameEn)
-              ? g.nameEn
-              : (defGuest?.nameEn || 'Tanvir Ahmed');
-            return {
-              ...g,
-              nameBn: g.nameBn || defGuest?.nameBn || g.name,
-              nameEn: resolvedNameEn,
-              cityBn: g.cityBn || defGuest?.cityBn || g.city,
-              cityEn: g.cityEn && !bengaliRegex.test(g.cityEn) ? g.cityEn : (defGuest?.cityEn || 'Dhaka'),
-              tagsBn: g.tagsBn || defGuest?.tagsBn || g.tags,
-              tagsEn: g.tagsEn || defGuest?.tagsEn || g.tags,
-              preferencesNotesBn: g.preferencesNotesBn || defGuest?.preferencesNotesBn || g.preferencesNotes,
-              preferencesNotesEn: g.preferencesNotesEn && !bengaliRegex.test(g.preferencesNotesEn)
-                ? g.preferencesNotesEn
-                : (defGuest?.preferencesNotesEn || 'Enjoys mountain views'),
-            };
-          });
-          setGuests(hydratedGuests);
-        } else {
-          setGuests(initial.guests);
-        }
-        if (parsed.payments) setPayments(parsed.payments);
-        if (parsed.messageTemplates) setMessageTemplates(parsed.messageTemplates);
-        if (parsed.language) setLanguage(parsed.language);
-        if (parsed.numeralFormat) setNumeralFormat(parsed.numeralFormat);
-        return;
-      }
-    } catch {
-      // ignore parsing error and fallback
-    }
-
-    // Default seed
-    setBookings(initial.bookings);
-    setGuests(initial.guests);
-    setPayments(initial.payments);
-  }, []);
 
   // Save state on change
   useEffect(() => {

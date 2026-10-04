@@ -118,7 +118,7 @@ export const ReportsView: React.FC = () => {
 
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                  <span className="text-[10px] font-bold text-[#0E2F76] opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-[#0E2F76] truncate max-w-full text-center">
                     {formatCurrency(item.revenue, language, numeralFormat)}
                   </span>
                   <div

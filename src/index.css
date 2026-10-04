@@ -2,24 +2,26 @@
 
 @layer base {
   :root {
-    --font-bangla: 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-latin: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-bangla: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+    --font-latin: "Inter", system-ui, sans-serif;
   }
 
   body {
-    font-family: var(--font-bangla);
+    font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
     background-color: #F4FEFF;
     color: #0A0A0A;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
 /* Coastal Clean Design Tokens */
 .font-bangla {
-  font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+  font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
 }
 
 .font-latin {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 /* Custom Card & Section Tokens */

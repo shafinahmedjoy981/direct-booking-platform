@@ -363,8 +363,8 @@ export const CalendarView: React.FC = () => {
                             }`}
                             title={language === 'bn' ? 'খালি রুম: বুকিং তৈরি করতে ক্লিক করুন' : 'Vacant: Click to reserve'}
                           >
-                            <div className="h-10 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Plus className="w-3.5 h-3.5 text-[#0E2F76]" />
+                            <div className="h-10 rounded-lg flex items-center justify-center text-[#A9C0E0]/30 group-hover:text-[#0E2F76] transition-colors">
+                              <Plus className="w-3.5 h-3.5" />
                             </div>
                           </td>
                         );
