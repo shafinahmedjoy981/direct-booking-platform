@@ -1,0 +1,6 @@
+{
+  "name": "Direct Booking Desk",
+  "description": "Single-property direct booking management & CRM for guesthouses and resorts in Bangladesh, featuring instant WhatsApp confirmations, bKash advance payments, and OTA commission savings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

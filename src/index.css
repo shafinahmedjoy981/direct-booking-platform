@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-bangla: 'Hind Siliguri', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-latin: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-bangla);
+    background-color: #F4FEFF;
+    color: #0A0A0A;
+  }
+}
+
+/* Coastal Clean Design Tokens */
+.font-bangla {
+  font-family: 'Hind Siliguri', 'Noto Sans Bengali', sans-serif;
+}
+
+.font-latin {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Custom Card & Section Tokens */
+.card-coastal {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(169, 192, 224, 0.4);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(14, 47, 118, 0.06), 0 6px 20px rgba(14, 47, 118, 0.05);
+}
+
+.card-coastal:hover {
+  box-shadow: 0 2px 4px rgba(14, 47, 118, 0.08), 0 8px 24px rgba(14, 47, 118, 0.08);
+}
+
+.band-sky {
+  background-color: rgba(169, 192, 224, 0.20);
+}
+
+.border-sky-tint {
+  border-color: rgba(169, 192, 224, 0.4);
+}
+
+/* Remove default number input spin buttons */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F4FEFF;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(169, 192, 224, 0.6);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0E2F76;
+}
